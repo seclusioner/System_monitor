@@ -1,0 +1,911 @@
+{% extends "basic.html" %}
+
+{% block head_extra %}
+    {{ super() }}
+    <!-- Custom head (e.g. CSS) for index.html -->
+    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/custom_index.css') }}"> -->
+    <style>
+        /* CPU 圖表容器調整 */
+      #cpuCharts {
+          display: flex;
+          flex-wrap: nowrap;
+          overflow-x: auto;
+          gap: 1rem;
+          padding: 0.5rem;
+      }
+
+      .cpu-chart-wrapper {
+          flex: 0 0 auto;
+          width: 200px;
+          text-align: center;
+          background: white;
+          border-radius: 8px;
+          padding: 1rem 0.5rem;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+          position: relative;
+      }
+
+      .chart-center-text {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(0%, 0%);
+          font-weight: 700;
+          font-size: 1.6rem;
+          color: #444;
+          pointer-events: none;
+          user-select: none;
+      }
+
+      .cpu-gauge-wrapper {
+          flex: 0 0 auto;
+          width: 220px;
+          height: 240px;
+          background: #f8f9fa;
+          border-radius: 10px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          padding: 1rem;
+          text-align: center;
+      }
+
+      .cpu-gauge-title {
+          font-weight: bold;
+          margin-top: 0.5rem;
+          color: #555;
+      }
+
+      #memoryGauge,
+      #diskGauge {
+        width: 100%;
+        height: 250px;
+      }
+      
+    </style>
+    
+    <style>
+      /* 卡片容器間距 */
+      .tech-card-wrapper {
+        margin-bottom: 2rem;
+        animation: fadeInUp 0.8s ease forwards;
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      @keyframes fadeInUp {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* 按鈕發光感與科技字體 */
+      .neon-btn {
+        border-radius: 0.5rem;
+        box-shadow: 0 0 10px #ff0066;
+        transition: all 0.3s ease-in-out;
+        font-family: 'Orbitron', monospace;
+        letter-spacing: 1px;
+        background: transparent;
+        color: #fff;
+        border: 2px solid #ff0066;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .neon-btn::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,0,102,0.2) 0%, transparent 80%);
+        animation: pulse 2s infinite;
+        z-index: 0;
+      }
+
+      .neon-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 20px #ff0066, 0 0 40px #ff0066;
+        color: #fff;
+      }
+
+      .neon-btn i {
+        position: relative;
+        z-index: 1;
+      }
+
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+          opacity: 0.8;
+        }
+        50% {
+          transform: scale(1.2);
+          opacity: 0.4;
+        }
+        100% {
+          transform: scale(1);
+          opacity: 0.8;
+        }
+      }
+      /* Modal 背景 */
+      .custom-modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(10, 0, 20, 0.9);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+      }
+
+      /* Modal 主體 */
+      .custom-modal {
+        background: #000;
+        border: 2px solid #ff0066;
+        border-radius: 1rem;
+        padding: 2rem;
+        box-shadow: 0 0 20px #ff0066, 0 0 40px #ff0066;
+        max-width: 400px;
+        text-align: center;
+        animation: fadeInScale 0.5s ease;
+      }
+
+      .modal-text {
+        font-family: 'Orbitron', monospace;
+        color: #fff;
+        text-shadow: 0 0 5px #ffd500;
+      }
+
+      @keyframes fadeInScale {
+        0% {
+          transform: scale(0.7);
+          opacity: 0;
+        }
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+      #customModalInput {
+        background-color: #111;
+        border: 2px solid #ff0066;
+        color: #fff;
+        font-family: 'Orbitron', monospace;
+      }
+    </style>
+    
+    <style>
+    .row > [class^="col-"] {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .card-body {
+      flex-grow: 1;
+    }
+
+    </style>
+
+{% endblock %}
+
+{% block page_title %}
+Raspberry Pi Real-time Monitoring System
+{% endblock %}
+
+{% block content %}
+<!--begin::System Metrics Gauges (CPU, Memory, Disk, Temp, Load, Net)-->
+   <!-- ============== begin: Row0 ============== -->
+    <div class="app-content px-4 py-2">
+      <div class="row g-4 d-flex align-items-stretch">
+        <!-- System Info Card -->
+        <div class="col-12 d-flex flex-column">
+          <div class="card shadow flex-grow-1" style="background-color: #000; border-radius: 1rem; border: 2px solid #ffcc00;">
+            <div class="card-header" style="background-color: #1a1a00; border-bottom: 1px solid #ffcc00;">
+              <h5 class="card-title mb-0" style="font-family: 'Orbitron', monospace; color: #ffcc00;">
+                <i class="bi bi-list-columns-reverse"></i>&nbsp;System Information
+              </h5>
+            </div>
+            <div class="card-body d-flex flex-column justify-content-center px-3 py-4 flex-grow-1">
+              <ul class="list-group list-group-flush w-100">
+                <li class="list-group-item bg-transparent border-0 d-flex justify-content-between align-items-center py-2">
+                  <span class="text-white" style="font-family: 'Orbitron', sans-serif;">Hostname</span>
+                  <span id="hostname" class="dseg-display text-warning fs-5">--</span>
+                </li>
+                <li class="list-group-item bg-transparent border-0 d-flex justify-content-between align-items-center py-2">
+                  <span class="text-white" style="font-family: 'Orbitron', sans-serif;">Model</span>
+                  <span id="device_model" class="dseg-display text-warning fs-5">--</span>
+                </li>
+                <li class="list-group-item bg-transparent border-0 d-flex justify-content-between align-items-center py-2">
+                  <span class="text-white" style="font-family: 'Orbitron', sans-serif;">SoC</span>
+                  <span id="system-soc" class="dseg-display text-warning fs-6 text-end">--</span>
+                </li>
+                <li class="list-group-item bg-transparent border-0 d-flex justify-content-between align-items-center py-2">
+                  <span class="text-white" style="font-family: 'Orbitron', sans-serif;">Arch</span>
+                  <span id="architecture" class="dseg-display text-warning fs-6">--</span>
+                </li>
+                <li class="list-group-item bg-transparent border-0 d-flex justify-content-between align-items-center py-2">
+                  <span class="text-white" style="font-family: 'Orbitron', sans-serif;">OS</span>
+                  <span id="platform" class="dseg-display text-warning fs-6">--</span>
+                </li>
+                <li class="list-group-item bg-transparent border-0 d-flex justify-content-between align-items-center py-2">
+                  <span class="text-white" style="font-family: 'Orbitron', sans-serif;">Release</span>
+                  <span id="platform_release" class="dseg-display text-warning fs-6">--</span>
+                </li>
+                <li class="list-group-item bg-transparent border-0 d-flex justify-content-between align-items-center py-2">
+                  <span class="text-white" style="font-family: 'Orbitron', sans-serif;">Python</span>
+                  <span id="python_version" class="dseg-display text-warning fs-6">--</span>
+                </li>
+                <li class="list-group-item bg-transparent border-0 d-flex justify-content-between align-items-center py-2">
+                  <span class="text-white" style="font-family: 'Orbitron', sans-serif;">IP Addr</span>
+                  <span id="ip_address" class="dseg-display text-warning fs-6">--</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- ============== end: Row0 ============== -->
+
+
+
+    <!-- ============== begin: Row1 ============== -->
+    <div class="app-content px-4 py-4">
+    <!--begin::CPU Usage Panel-->
+    <div class="card shadow" style="background-color: #000; border-radius: 1rem; border: 2px solid #ff4c4c;">
+        <div class="card-header" style="background-color: #330000; border-bottom: 1px solid #ff4c4c;">
+        <h5 class="card-title text-danger mb-0" style="font-family: 'Orbitron', sans-serif;">
+            <i class="bi bi-cpu me-2"></i>CPU Usage
+        </h5>
+        </div>
+
+        <div class="card-body">
+        <div class="px-1">
+            <div id="cpuCharts"
+            class="d-flex flex-nowrap overflow-auto py-2"
+            style="gap: 1rem; white-space: nowrap;">
+            </div>
+        </div>
+        </div>
+    </div>
+    </div>
+    <!-- ============== end: Row1 ============== -->
+    <!--end::CPU Usage Panel-->
+    
+    <!-- ============== begin: Row2 ============== -->
+    <div class="app-content px-4 py-2">
+        <div class="row g-4">
+            <!-- Memory Gauge Card -->
+            <div class="col-md-6 col-lg-4">
+            <div class="card shadow" style="background-color: #000; border-radius: 1rem; border: 2px solid #00f;">
+                <div class="card-header" style="background-color: #001133; border-bottom: 1px solid #00f;">
+                <h5 class="card-title text-info mb-0" style="font-family: 'Orbitron', sans-serif;">
+                    <i class="bi bi-memory me-2"></i>Memory Usage
+                </h5>
+                </div>
+                <div class="card-body d-flex justify-content-center align-items-center" style="min-height: 180px;">
+                <div id="memoryGauge" style="width: 200px; height: 160px;"></div>
+                </div>
+            </div>
+            </div>
+
+            <!-- Disk Gauge Card -->
+            <div class="col-md-6 col-lg-4">
+            <div class="card shadow" style="background-color: #000; border-radius: 1rem; border: 2px solid #ff9800;">
+                <div class="card-header" style="background-color: #331e00; border-bottom: 1px solid #ff9800;">
+                <h5 class="card-title text-warning mb-0" style="font-family: 'Orbitron', sans-serif;">
+                    <i class="bi bi-hdd me-2"></i>Disk Usage
+                </h5>
+                </div>
+                <div class="card-body d-flex justify-content-center align-items-center" style="min-height: 180px;">
+                <div id="diskGauge" style="width: 200px; height: 160px;"></div>
+                </div>
+            </div>
+            </div>
+
+            <!-- Temperature Gauge (Digital Style) -->
+            <div class="col-md-6 col-lg-4">
+            <div class="card shadow" style="background-color: #000; border-radius: 1rem; border: 2px solid #0f0;">
+                <div class="card-header" style="background-color: #001100; border-bottom: 1px solid #0f0;">
+                <h5 class="card-title text-success mb-0" style="font-family: 'Orbitron', monospace;">
+                    <i class="bi bi-thermometer-half me-2"></i>CPU Temperature
+                </h5>
+                </div>
+                <div class="card-body d-flex justify-content-center align-items-center" style="min-height: 180px;">
+                <div id="cpuTempDisplay" class="dseg-display dseg-grey">--°C</div>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+    <!-- ============== end: Row2 ============== -->
+
+    <!-- ============== begin: Row3 ============== -->
+    <div class="app-content px-4 py-2">
+        <div class="row g-4 d-flex align-items-stretch">
+            <!-- System Load (Digital Style) -->
+            <div class="col-md-6 col-lg-4 d-flex flex-column">
+              <div class="card shadow flex-grow-1" style="background-color: #000; border-radius: 1rem; border: 2px solid #00f0ff;">
+                  <div class="card-header" style="background-color: #001122; border-bottom: 1px solid #00f0ff;">
+                  <h5 class="card-title text-info mb-0" style="font-family: 'Orbitron', monospace;">
+                      <i class="bi bi-activity me-2"></i>System Load (Average)
+                  </h5>
+                  </div>
+                  <div class="card-body d-flex flex-column justify-content-center px-3 py-4 flex-grow-1">
+                    <ul class="list-group list-group-flush w-100">
+                        <li class="list-group-item bg-transparent border-0 d-flex justify-content-between align-items-center py-2">
+                        <span class="text-white" style="font-family: 'Orbitron', sans-serif;">1 min</span>
+                        <span id="load1" class="dseg-display text-primary fs-4">--</span>
+                        </li>
+                        <li class="list-group-item bg-transparent border-0 d-flex justify-content-between align-items-center py-2">
+                        <span class="text-white" style="font-family: 'Orbitron', sans-serif;">5 min</span>
+                        <span id="load5" class="dseg-display text-warning fs-4">--</span>
+                        </li>
+                        <li class="list-group-item bg-transparent border-0 d-flex justify-content-between align-items-center py-2">
+                        <span class="text-white" style="font-family: 'Orbitron', sans-serif;">15 min</span>
+                        <span id="load15" class="dseg-display text-danger fs-4">--</span>
+                        </li>
+                    </ul>
+                  </div>
+              </div>
+            </div>
+
+            <!-- Network Traffic (Digital Style) -->
+            <div class="col-md-6 col-lg-4 d-flex flex-column">
+              <div class="card shadow flex-grow-1" style="background-color: #000; border-radius: 1rem; border: 2px solid #00bfff;">
+                  <div class="card-header" style="background-color: #001122; border-bottom: 1px solid #00bfff;">
+                  <h5 class="card-title text-primary mb-0" style="font-family: 'Orbitron', monospace;">
+                      <i class="bi bi-graph-up-arrow me-2"></i>Network Traffic
+                  </h5>
+                  </div>
+                  <div class="card-body d-flex flex-column justify-content-center px-3 py-4 flex-grow-1">
+                  <ul class="list-group list-group-flush w-100">
+                      <li class="list-group-item bg-transparent border-0 d-flex justify-content-between align-items-center py-2">
+                        <span class="text-white" style="font-family: 'Orbitron', sans-serif;">Upload</span>
+                        <span id="txBytes" class="fs-4 dseg-display text-success">--</span>
+                      </li>
+                      <li class="list-group-item bg-transparent border-0 d-flex justify-content-between align-items-center py-2">
+                        <span class="text-white" style="font-family: 'Orbitron', sans-serif;">Download</span>
+                        <span id="rxBytes" class="fs-4 dseg-display text-success">--</span>
+                      </li>
+                      <li class="list-group-item bg-transparent border-0 d-flex justify-content-between align-items-center py-2">
+                        <span class="text-white" style="font-family: 'Orbitron', monospace;">Upload Speed</span>
+                        <span id="txSpeedText" class="fs-5 dseg-display text-info">-- KB/s</span>
+                      </li>
+                      <li class="list-group-item bg-transparent border-0 d-flex justify-content-between align-items-center py-2">
+                        <span class="text-white" style="font-family: 'Orbitron', monospace;">Download Speed</span>
+                        <span id="rxSpeedText" class="fs-5 dseg-display text-info">-- KB/s</span>
+                      </li>
+                  </ul>
+                  </div>
+              </div>
+            </div>
+
+            <!-- Shutdown / Reboot Card -->
+            <div class="col-md-6 col-lg-4 d-flex flex-column">
+              <div class="card shadow flex-grow-1" style="background-color: #000; border-radius: 1rem; border: 2px solid #ff0066;">
+                <div class="card-header" style="background-color: #1a001a; border-bottom: 1px solid #ff0066;">
+                  <h5 class="card-title text-danger mb-0" style="font-family: 'Orbitron', monospace;">
+                    <i class="bi bi-terminal me-2"></i>System Control
+                  </h5>
+                </div>
+                <div class="card-body d-flex flex-column justify-content-center align-items-center gap-4 px-3 py-4">
+                  <button class="btn btn-lg btn-danger px-4 neon-btn" onclick="sendControl('shutdown')">
+                    <i class="bi bi-power me-2"></i>Shutdown
+                  </button>
+                  <button class="btn btn-lg btn-warning px-4 neon-btn" onclick="sendControl('reboot')">
+                    <i class="bi bi-arrow-repeat me-2"></i>Reboot
+                  </button>
+                </div>
+              </div>
+            </div>
+
+
+            <!-- end: cards -->
+        </div>
+    </div>
+    <!-- ============== end: Row3 ============== -->
+
+    <!-- ============== begin: Row4 ============== -->
+    <div class="app-content px-4 py-2">
+      <div class="row g-4 d-flex align-items-stretch">
+        <!-- GPIO Card -->
+        <div class="col-12">
+          <div class="card shadow flex-grow-1" style="background-color: #000; border: 2px solid #00ffcc; border-radius: 1rem;">
+            <div class="card-header" style="background-color: #001122; border-bottom: 1px solid #00ffcc;">
+              <h5 class="card-title mb-0" style="font-family: 'Orbitron', monospace; color: #00ffcc;">
+                <i class="bi bi-list-check me-2"></i>GPIO Status Overview
+              </h5>
+            </div>
+            <div class="card-body text-white px-3 py-4">
+              <div class="table-responsive">
+                <table class="table table-dark table-striped table-bordered mb-0" id="gpioTable">
+                  <thead>
+                    <tr>
+                      <th style="font-family: 'Orbitron', sans-serif;">Pin</th>
+                      <th style="font-family: 'Orbitron', sans-serif;">Active</th>
+                      <th style="font-family: 'Orbitron', sans-serif;">Mode</th>
+                      <th style="font-family: 'Orbitron', sans-serif;">Status</th>
+                      <th style="font-family: 'Orbitron', sans-serif;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="gpioStatusBody">
+                    <tr><td colspan="5">Loading...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- ============== end: Row4 ============== -->
+
+
+<!--end::System Metrics Gauges-->
+
+
+<!-- Custom Modal Wrapper -->
+<div id="customModalBackdrop" class="custom-modal-backdrop" style="display: none;">
+  <div class="custom-modal">
+    <div class="custom-modal-content">
+      <h5 id="customModalMessage" class="modal-text">Message goes here</h5>
+      <input id="customModalInput" class="form-control mt-3" style="display: none;" />
+      <div class="d-flex justify-content-center gap-3 mt-4">
+        <button id="customModalOk" class="btn neon-btn">OK</button>
+        <button id="customModalCancel" class="btn neon-btn" style="display: none;">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+
+<script>
+  function loadSystemInfo() {
+    fetch("/api/system_info")
+      .then(response => response.json())
+      .then(data => {
+        // console.log("System info:", data); // Debug 用
+        const keyMap = {
+          hostname: "hostname",
+          device_model: "device_model",
+          soc_chip: "system-soc",  // ✅ 注意這個 ID
+          architecture: "architecture",
+          platform: "platform",
+          platform_release: "platform_release",
+          python_version: "python_version",
+          ip_address: "ip_address"
+        };
+
+        for (const key in keyMap) {
+          const el = document.getElementById(keyMap[key]);
+          if (el && data[key] !== undefined) {
+            el.textContent = data[key];
+          }
+        }
+      })
+      .catch(err => {
+        console.error("Failed to load system info:", err);
+      });
+  }
+
+  document.addEventListener("DOMContentLoaded", loadSystemInfo);
+</script>
+
+
+  <script>
+    // ======================== Custom JavaScript ========================
+      // Chart.js CPU 圖表相關陣列
+      const cpuGauges = [];
+
+      function setupCpuCharts(count) {
+        const container = document.getElementById("cpuCharts");
+        container.innerHTML = "";
+        cpuGauges.length = 0;
+
+        for (let i = 0; i < count; i++) {
+            const wrapper = document.createElement("div");
+            wrapper.className = "card text-center neon-card me-2";
+            wrapper.style.minWidth = "240px";
+            wrapper.style.padding = "1rem";
+            wrapper.style.backgroundColor = "#1e1e2f"; // 深底
+            wrapper.style.border = "1px solid #00f0ff";
+            wrapper.style.boxShadow = "0 0 10px rgba(0, 240, 255, 0.2)";
+            
+            const chartDiv = document.createElement("div");
+            chartDiv.id = `cpuGauge${i}`;
+            chartDiv.style.width = "100%";
+            chartDiv.style.height = "160px";
+            wrapper.appendChild(chartDiv);
+
+            const label = document.createElement("div");
+            label.className = "fw-bold pt-2 text-light"; // label.className = "fw-bold pt-2";
+            label.innerText = `Core ${i}`;
+            wrapper.appendChild(label);
+
+            container.appendChild(wrapper);
+
+            const chart = echarts.init(chartDiv);
+            const option = {
+                series: [
+                  {
+                    type: "gauge",
+                    startAngle: 180,
+                    endAngle: 0,
+                    min: 0,
+                    max: 100,
+                    radius: "100%",
+                    axisLine: {
+                      lineStyle: {
+                        width: 10,
+                        color: [
+                          [0.5, "#0ada4c"],    // 淺藍
+                          [0.8, "#facc15"],    // 黃橘
+                          [1, "#ef4444"],      // 紅
+                        ],
+                      },
+                    },
+                    axisLabel: {
+                      color: '#cccccc',     // 刻度字顏色（可用 #aaa 或 #fff）
+                      fontSize: 8,
+                      fontFamily: 'DSEG14-Modern, monospace',
+                      //fontWeight: 'bold',
+                      distance: 10
+                    },
+                    pointer: { // 字體 (%數)
+                      show: true,
+                      length: "70%",
+                      width: 3,
+                      itemStyle: { color: "#00f0ff" },
+                    },
+                    detail: {
+                      formatter: "{value}%",
+                      fontSize: 25,
+                      color: "#00f0ff",
+                      fontFamily: 'DSEG14-Modern, monospace',
+                      offsetCenter: [0, "50%"],
+                    },
+                    data: [{ value: 0, name: "" }],
+                  },
+                ],
+              };
+
+            chart.setOption(option);
+            cpuGauges.push(chart);
+        }
+      }
+
+
+      // 初始化 ECharts 儀表盤
+      let memoryGauge = null;
+      let diskGauge = null;
+
+      function initECharts() {
+        memoryGauge = echarts.init(document.getElementById("memoryGauge"));
+        diskGauge = echarts.init(document.getElementById("diskGauge"));
+
+        // 統一樣式的儀表板設定 (參考 CPU 樣式)
+        const unifiedGaugeOption = (name, highlightColor) => ({
+          series: [
+            {
+              name: name,
+              type: "gauge",
+              startAngle: 180,
+              endAngle: 0,
+              min: 0,
+              max: 100,
+              radius: "100%",
+              axisLine: {
+                lineStyle: {
+                  width: 10,
+                  color: [
+                    [0.5, "#0ada4c"],
+                    [0.8, "#facc15"],
+                    [1, highlightColor],  // 最亮的區間色
+                  ],
+                },
+              },
+              axisLabel: {
+                color: '#cccccc',
+                fontSize: 8,
+                distance: 10,
+                fontFamily: 'DSEG14-Modern, monospace',
+              },
+              pointer: {
+                show: true,
+                length: "70%",
+                width: 3,
+                itemStyle: {
+                  color: "#00f0ff"
+                }
+              },
+              detail: {
+                formatter: "{value}%",
+                fontSize: 25,
+                color: "#00f0ff",
+                fontFamily: 'DSEG14-Modern, monospace',
+                offsetCenter: [0, "50%"],
+              },
+              data: [{ value: 0, name: "" }],
+            },
+          ],
+        });
+
+        memoryGauge.setOption(unifiedGaugeOption("Memory", "#ff8c00"));  // 橘色高警
+        diskGauge.setOption(unifiedGaugeOption("Disk", "#ff4444"));      // 紅色高警
+      }
+
+      // 更新 ECharts 儀表盤數值
+      function updateECharts(memory, disk) {
+        memoryGauge.setOption({
+          series: [{ data: [{ value: memory, name: "" }] }],
+        });
+        diskGauge.setOption({
+          series: [{ data: [{ value: disk, name: "" }] }],
+        });
+      }
+
+      function updateCharts() {
+        fetch("/api")
+          .then((response) => response.json())
+          .then((data) => {
+          const cpus = data.cpu;
+
+          if (cpuGauges.length !== cpus.length) {
+              setupCpuCharts(cpus.length);
+          }
+
+          cpus.forEach((usage, i) => {
+          cpuGauges[i].setOption({
+              series: [
+              {
+                  data: [{ value: usage }],
+              },
+              ],
+          });
+          });
+
+          updateECharts(data.memory, data.disk);
+
+          // 溫度顯示
+          const temp = data.temperature;
+          const tempDisp = document.getElementById("cpuTempDisplay");
+
+          if (temp === null || temp === undefined || temp === "") {
+            tempDisp.textContent = "ERROR"; // 顯示錯誤文字
+            tempDisp.className = "dseg-display dseg-red"; // 保留字體 + 紅色
+          } else {
+            tempDisp.textContent = `${temp}°C`;
+            tempDisp.className = "dseg-display " + (temp > 70 ? "dseg-red" : "dseg-green");
+          }
+
+          // Load 資訊
+          document.getElementById("load1").textContent = data.load1.toFixed(2);
+          document.getElementById("load5").textContent = data.load5.toFixed(2);
+          document.getElementById("load15").textContent = data.load15.toFixed(2);
+
+          // 網路資訊
+          document.getElementById("txBytes").innerText =
+              (data.bytes_sent / 1024 / 1024).toFixed(2) + " MB";
+          document.getElementById("rxBytes").innerText =
+              (data.bytes_recv / 1024 / 1024).toFixed(2) + " MB";
+          document.getElementById("txSpeedText").innerText =
+              "Tx：" + (data.tx_speed / 1024).toFixed(1) + " KB/s";
+          document.getElementById("rxSpeedText").innerText =
+              "Rx：" + (data.rx_speed / 1024).toFixed(1) + " KB/s";
+          })
+          .catch((err) => {
+            console.error("取得 API 資料錯誤:", err);
+          });
+      }
+
+      window.addEventListener("DOMContentLoaded", () => {
+        initECharts();
+        updateCharts();
+        setInterval(updateCharts, 1000);
+      });
+  </script>
+  
+  <script>
+    function loadGPIOStatus() {
+      fetch('/gpio/status')
+        .then(res => res.json())
+        .then(data => {
+          const tbody = document.getElementById('gpioStatusBody');
+          tbody.innerHTML = '';
+
+          data.forEach(pinData => {
+            const row = document.createElement('tr');
+
+            // Pin number
+            const pinCell = document.createElement('td');
+            pinCell.textContent = pinData.pin;
+            row.appendChild(pinCell);
+
+            // Active toggle
+            const activeCell = document.createElement('td');
+            const activeCheckbox = document.createElement('input');
+            activeCheckbox.type = 'checkbox';
+            activeCheckbox.checked = pinData.enabled;
+            activeCheckbox.addEventListener('change', () => {
+              fetch('/gpio/set_enable', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pin: pinData.pin, enabled: activeCheckbox.checked })
+              }).then(loadGPIOStatus);
+            });
+            activeCell.appendChild(activeCheckbox);
+            row.appendChild(activeCell);
+
+            // Mode selector
+            const modeCell = document.createElement('td');
+            const modeSelect = document.createElement('select');
+            modeSelect.className = 'form-select form-select-sm bg-dark text-white';
+            modeSelect.innerHTML = `
+              <option value="in" ${pinData.mode === 'IN' ? 'selected' : ''}>IN</option>
+              <option value="out" ${pinData.mode === 'OUT' ? 'selected' : ''}>OUT</option>
+            `;
+            modeSelect.addEventListener('change', () => {
+              fetch('/gpio/configure', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pin: pinData.pin, direction: modeSelect.value })
+              }).then(loadGPIOStatus);
+            });
+            modeCell.appendChild(modeSelect);
+            row.appendChild(modeCell);
+
+            // Status (input level)
+            const statusCell = document.createElement('td');
+            if (pinData.mode === 'IN' || pinData.mode === 'OUT') {
+              statusCell.textContent = pinData.level === 1 ? 'HIGH' : 'LOW';
+            } else {
+              statusCell.textContent = '-';
+            }
+            row.appendChild(statusCell);
+
+            // Action button (only for OUT mode)
+            const actionCell = document.createElement('td');
+            if (pinData.mode === 'OUT') {
+              const toggleBtn = document.createElement('button');
+              toggleBtn.className = 'btn btn-sm btn-primary';
+              toggleBtn.textContent = pinData.level === 1 ? 'Turn OFF' : 'Turn ON';
+              toggleBtn.addEventListener('click', () => {
+                fetch('/gpio/set_state', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ pin: pinData.pin, state: pinData.level === 1 ? 0 : 1 })
+                }).then(loadGPIOStatus);
+              });
+              actionCell.appendChild(toggleBtn);
+            } else {
+              actionCell.innerHTML = '<span class="text-muted">N/A</span>';
+            }
+            row.appendChild(actionCell);
+
+            tbody.appendChild(row);
+          });
+        })
+        .catch(err => {
+          console.error("Error loading GPIO:", err);
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadGPIOStatus();
+      setInterval(loadGPIOStatus, 2000); // 自動更新每2秒
+    });
+  </script>
+
+  <!-- shutdown / reboot -->
+  <script>
+    async function sendControl(action) {
+      const confirmed = await customConfirm(
+        `Are you sure you want to ${action === 'shutdown' ? 'shut down' : 'reboot'} the system?`
+      );
+      if (!confirmed) return;
+
+      const password = await customPrompt("Enter admin password:");
+      if (!password) {
+        await customAlert("Action cancelled.");
+        return;
+      }
+
+      await customAlert("Verifying password and preparing system...");
+
+      fetch(`/${action}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+      })
+        .then(res => {
+          if (!res.ok) return res.json().then(err => Promise.reject(err));
+          return res.json();
+        })
+        .then(async data => {
+          await customAlert(data.message);
+        })
+        .catch(async err => {
+          await customAlert(err.message || "Action failed.");
+        });
+    }
+
+
+    function showModal({ message, hasInput = false, isConfirm = false }) {
+      return new Promise((resolve) => {
+        const backdrop = document.getElementById('customModalBackdrop');
+        const msg = document.getElementById('customModalMessage');
+        const input = document.getElementById('customModalInput');
+        const okBtn = document.getElementById('customModalOk');
+        const cancelBtn = document.getElementById('customModalCancel');
+
+        msg.innerText = message;
+        input.style.display = hasInput ? 'block' : 'none';
+        input.value = '';
+        cancelBtn.style.display = isConfirm || hasInput ? 'inline-block' : 'none';
+
+        // 顯示 modal
+        backdrop.style.display = 'flex';
+
+        function close(result) {
+          backdrop.style.display = 'none';
+          okBtn.onclick = null;
+          cancelBtn.onclick = null;
+          resolve(result);
+        }
+
+        okBtn.onclick = () => {
+          if (hasInput) {
+            close(input.value || null);
+          } else {
+            close(true);
+          }
+        };
+
+        cancelBtn.onclick = () => {
+          close(hasInput ? null : false);
+        };
+
+        // 鍵盤支援：Enter 確認、Esc 取消
+        input.onkeydown = (e) => {
+          if (e.key === 'Enter') okBtn.click();
+          if (e.key === 'Escape') cancelBtn.click();
+        };
+
+        input.focus();
+      });
+    }
+
+    async function customAlert(message) {
+      await showModal({ message });
+    }
+
+    async function customConfirm(message) {
+      return await showModal({ message, isConfirm: true });
+    }
+
+    async function customPrompt(message) {
+      return await showModal({ message, hasInput: true });
+    }
+
+
+    </script>
+
+
+{% endblock %}

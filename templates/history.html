@@ -1,0 +1,156 @@
+{% extends "basic.html" %}
+
+{% block head_extra %}
+    {{ super() }}
+    <!-- Custom head (e.g. CSS) for index.html -->
+    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/custom_index.css') }}"> -->
+    <style>
+    /* Custom CSS */
+    </style>
+    <script>
+      // 每 30 秒自動重新載入頁面
+      setTimeout(() => {
+        location.reload();
+      }, 30000);
+    </script>
+{% endblock %}
+
+{% block page_title %}
+History Record
+{% endblock %}
+
+{% block content %}
+<div class="app-content px-4 py-2">
+  <div class="row g-4">
+    <!-- 使用率區塊 -->
+    <div class="col-lg-6">
+      <div class="card bg-dark border-secondary">
+        <div class="card-header">
+          <h5 class="card-title text-info mb-0" style="font-family: 'Orbitron', sans-serif;">
+            <i class="bi bi-activity me-2" ></i>CPU / Memory / Disk Usage(%)
+          </h5>
+        </div>
+        <div class="card-body">
+          <div id="usage-chart" style="height: 300px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 系統負載區塊 -->
+    <div class="col-lg-6">
+      <div class="card bg-dark border-secondary">
+        <div class="card-header">
+          <h5 class="card-title text-warning mb-0" style="font-family: 'Orbitron', sans-serif;">
+            <i class="bi bi-speedometer2 me-2"></i>SystemLoad (Average)
+          </h5>
+        </div>
+        <div class="card-body">
+          <div id="load-chart" style="height: 300px;"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <!-- ChartJS 歷史紀錄-->
+  <script>
+    // ======================== Custom JavaScript ========================
+      const stats = {{ stats | tojson | safe }};
+
+      // 共用轉換函數：將 timestamp 調整為 +8 時區
+      const toLocalTime = iso => new Date(new Date(iso).getTime() + 8 * 3600 * 1000);
+
+      // 轉換為 [{ x: Date, y: Number }] 格式
+      const cpu = stats.map(item => ({ x: toLocalTime(item.timestamp), y: item.cpu }));
+      const memory = stats.map(item => ({ x: toLocalTime(item.timestamp), y: item.memory }));
+      const disk = stats.map(item => ({ x: toLocalTime(item.timestamp), y: item.disk }));
+      const temp = stats.map(item => ({ x: toLocalTime(item.timestamp), y: item.temperature }));
+      const load1 = stats.map(item => ({ x: toLocalTime(item.timestamp), y: item.load1 }));
+      const load5 = stats.map(item => ({ x: toLocalTime(item.timestamp), y: item.load5 }));
+      const load15 = stats.map(item => ({ x: toLocalTime(item.timestamp), y: item.load15 }));
+
+      // 固定深色樣式
+      const textColor = '#ccc';
+      const gridColor = '#444';
+      const bgColor = '#000';
+
+      const baseOptions = {
+        chart: {
+          type: 'area',
+          height: 300,
+          toolbar: { show: false },
+          background: bgColor
+        },
+        dataLabels: { enabled: false },
+        stroke: { curve: 'smooth', width: 2 },
+        xaxis: {
+          type: 'datetime',
+          labels: {
+            rotate: -45,
+            style: { colors: textColor }
+          },
+          axisBorder: { color: gridColor },
+          axisTicks: { color: gridColor }
+        },
+        yaxis: {
+          labels: {
+            style: { colors: textColor }
+          }
+        },
+        legend: {
+          show: true,
+          labels: { colors: textColor }
+        },
+        tooltip: {
+          theme: 'dark',
+          x: { format: 'yyyy-MM-dd HH:mm:ss' }
+        },
+        grid: {
+          borderColor: gridColor,
+          row: {
+            colors: ['transparent'],
+            opacity: 0.1
+          }
+        }
+      };
+
+      // 1. 使用率圖 (CPU / Memory / Disk)
+      const usageOptions = {
+        ...baseOptions,
+        colors: ['#0d6efd', '#20c997', '#ffc107'],
+        series: [
+          { name: 'CPU (%)', data: cpu },
+          { name: 'Memory (%)', data: memory },
+          { name: 'Disk (%)', data: disk }
+        ]
+      };
+      new ApexCharts(document.querySelector("#usage-chart"), usageOptions).render();
+
+      // 2. 系統負載圖 (Load Avg)
+      const loadOptions = {
+        ...baseOptions,
+        colors: ['#ffc107', '#198754', '#6f42c1'],
+        series: [
+          { name: 'Load 1 min', data: load1 },
+          { name: 'Load 5 min', data: load5 },
+          { name: 'Load 15 min', data: load15 }
+        ]
+      };
+      new ApexCharts(document.querySelector("#load-chart"), loadOptions).render();
+
+      // 3. 溫度圖 (CPU Temp)
+      const tempOptions = {
+        ...baseOptions,
+        colors: ['#dc3545'],
+        series: [
+          { name: 'Temperature (°C)', data: temp }
+        ]
+      };
+      new ApexCharts(document.querySelector("#temp-chart"), tempOptions).render();
+  </script>
+{% endblock %}

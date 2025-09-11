@@ -1,0 +1,121 @@
+<!--begin::Head-->
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+<!--begin::Accessibility Meta Tags-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+<meta name="color-scheme" content="light dark" />
+<meta name="theme-color" content="#007bff" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#1a1a1a" media="(prefers-color-scheme: dark)" />
+<!--end::Accessibility Meta Tags-->
+
+<!--begin::Primary Meta Tags-->
+<meta name="title" content="Raspberry Pi Monitoring System" />
+<!-- <meta name="author" content="ColorlibHQ" /> -->
+<meta name="author" content="D.S." />
+
+<meta
+    name="description"
+    content="AdminLTE is a Free Bootstrap 5 Admin Dashboard, 30 example pages using Vanilla JS. Fully accessible with WCAG 2.1 AA compliance."
+/>
+<meta
+    name="keywords"
+    content="bootstrap 5, bootstrap, bootstrap 5 admin dashboard, bootstrap 5 dashboard, bootstrap 5 charts, bootstrap 5 calendar, bootstrap 5 datepicker, bootstrap 5 tables, bootstrap 5 datatable, vanilla js datatable, colorlibhq, colorlibhq dashboard, colorlibhq admin dashboard, accessible admin panel, WCAG compliant, system monitoring"
+/>
+<!--end::Primary Meta Tags-->
+
+<!--begin::Accessibility Features-->
+<!-- Skip links will be dynamically added by accessibility.js -->
+<meta name="supported-color-schemes" content="light dark" />
+<link rel="preload" href="../static/css/adminlte.css" as="style" />
+<!--end::Accessibility Features-->
+
+
+<!-- 讓子頁面自定標題，例如 index.html 填「儀表板」 -->
+<title>{% block title %}Monitoring System{% endblock %}</title>
+
+<!--begin::Fonts-->
+<link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/@fontsource/source-sans-3@5.0.12/index.css"
+    integrity="sha256-tXJfXfp6Ewt1ilPzLDtQnJV4hclT9XuaZUKyUvmyr+Q="
+    crossorigin="anonymous"
+    media="print"
+    onload="this.media='all'"
+/>
+
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/dseg@0.46.0/css/dseg.min.css" rel="stylesheet" >
+<!--end::Fonts-->
+
+<!--begin::Third Party Plugin(OverlayScrollbars)-->
+<link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.11.0/styles/overlayscrollbars.min.css"
+    crossorigin="anonymous"
+/>
+<!--end::Third Party Plugin(OverlayScrollbars)-->
+
+<!--begin::Third Party Plugin(Bootstrap Icons)-->
+<link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"
+    crossorigin="anonymous"
+/>
+<!-- ref: https://icons.getbootstrap.com/ -->
+    
+<!--end::Third Party Plugin(Bootstrap Icons)-->
+
+<!--begin::Required Plugin(AdminLTE)-->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/adminlte.css') }}" />
+<!--end::Required Plugin(AdminLTE)-->
+
+<!-- apexcharts -->
+<link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.css"
+    integrity="sha256-4MX+61mt9NVvvuPjUWdUdyfZfxSB1/Rf9WtqRHgG5S0="
+    crossorigin="anonymous"
+/>
+
+<!-- jsvectormap (deleted)-->
+
+<!--begin::System style css-->
+<style>      
+    .neon-card {
+    background-color: #1e1e2f;
+    border: 1px solid #00f0ff;
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+    color: #e0f7ff;
+    transition: transform 0.2s ease;
+    }
+    .neon-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+    }
+
+    .card.bg-dark {
+    background-color: #1e1e2f !important;
+    }
+
+    .card.bg-dark .card-title {
+    color: #ffffff;
+    }
+    
+    @import url('https://cdn.jsdelivr.net/npm/dseg@0.46.0/css/dseg.min.css');
+    .dseg-display {
+    font-family: 'DSEG14-Modern', monospace;
+    font-size: 4rem;
+    color: #0f0;
+    background-color: #000;
+    padding: 0.5rem 1rem;
+    border: 2px inset #0f0;
+    border-radius: 8px;
+    letter-spacing: 0.1em;
+    display: inline-block;
+    }
+    .dseg-red { color: #f00; border-color: #f00; }
+    .dseg-grey { color: #888; border-color: #888; }
+</style>
+<!--end::System style css-->
+
+<!--end::Head-->

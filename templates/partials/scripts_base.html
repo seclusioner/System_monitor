@@ -1,0 +1,69 @@
+<!-- OverlayScrollbars -->
+<script src="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.11.0/browser/overlayscrollbars.browser.es6.min.js" crossorigin="anonymous"></script>
+
+<!-- Bootstrap / Popper -->
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.min.js" crossorigin="anonymous"></script>
+
+<!-- AdminLTE -->
+<script src="{{ url_for('static', filename='js/adminlte.js') }}"></script>
+
+<script src="../static/js/adminlte.js"></script>
+
+<!-- OverlayScrollbars Init -->
+<script>
+  const SELECTOR_SIDEBAR_WRAPPER = '.sidebar-wrapper';
+  const Default = {
+    scrollbarTheme: 'os-theme-light',
+    scrollbarAutoHide: 'leave',
+    scrollbarClickScroll: true,
+  };
+  document.addEventListener('DOMContentLoaded', function () {
+    const sidebarWrapper = document.querySelector(SELECTOR_SIDEBAR_WRAPPER);
+    const isMobile = window.innerWidth <= 992;
+    if (sidebarWrapper && OverlayScrollbarsGlobal?.OverlayScrollbars && !isMobile) {
+      OverlayScrollbarsGlobal.OverlayScrollbars(sidebarWrapper, {
+        scrollbars: {
+          theme: Default.scrollbarTheme,
+          autoHide: Default.scrollbarAutoHide,
+          clickScroll: Default.scrollbarClickScroll,
+        },
+      });
+    }
+  });
+</script>
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Dark Mode Toggle -->
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const body = document.body;
+    const toggleBtn = document.getElementById("darkModeToggle");
+    const icon = toggleBtn.querySelector("i");
+
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") {
+      body.setAttribute("data-bs-theme", "dark");
+      icon.classList.replace("bi-moon-fill", "bi-sun-fill");
+    } else {
+      body.setAttribute("data-bs-theme", "light");
+      icon.classList.replace("bi-sun-fill", "bi-moon-fill");
+    }
+
+    toggleBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      const currentTheme = body.getAttribute("data-bs-theme");
+      if (currentTheme === "dark") {
+        body.setAttribute("data-bs-theme", "light");
+        localStorage.setItem("theme", "light");
+        icon.classList.replace("bi-sun-fill", "bi-moon-fill");
+      } else {
+        body.setAttribute("data-bs-theme", "dark");
+        localStorage.setItem("theme", "dark");
+        icon.classList.replace("bi-moon-fill", "bi-sun-fill");
+      }
+    });
+  });
+</script>

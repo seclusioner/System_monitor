@@ -1,0 +1,101 @@
+{% extends "basic.html" %}
+
+{% block head_extra %}
+    {{ super() }}
+    <!-- Custom head (e.g. CSS) for index.html -->
+    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/custom_index.css') }}"> -->
+    <style>
+    /* Custom CSS */
+    /* 確保每個 column 都可以讓卡片撐滿高度 */
+    .row > [class^="col-"] {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 卡片填滿 column */
+    .card {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    /* 卡片內容區填滿卡片剩餘空間 */
+    .card-body {
+      flex-grow: 1;
+    }
+
+    </style>
+    
+{% endblock %}
+
+{% block page_title %}
+Title
+{% endblock %}
+
+{% block content %}
+<a href="https://adminlte.io/docs/3.2">Source</a>
+<div class="row">
+  <div class="col-12">
+    <div class="card bg-dark">
+      <div class="card-header">
+        <h3 class="card-title">Welcome to Raspberry Pi Dashboard</h3>
+      </div>
+      <div class="card-body">
+        <p>This is the main dashboard content.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 d-flex align-items-stretch">
+  <!-- Card 1 -->
+  <div class="col-md-6 col-lg-4 d-flex flex-column">
+    <div class="card shadow flex-grow-1" style="background-color: #000; border-radius: 1rem; border: 2px solid #00ffaa;">
+      <div class="card-header" style="background-color: #001122; border-bottom: 1px solid #00ffaa;">
+        <h5 class="card-title text-info mb-0" style="font-family: 'Orbitron', monospace;">
+          <i class="bi bi-box me-2"></i>Empty Card 1
+        </h5>
+      </div>
+      <div class="card-body d-flex flex-column justify-content-center px-3 py-4">
+        <!-- Your content here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 2 -->
+  <div class="col-md-6 col-lg-4 d-flex flex-column">
+    <div class="card shadow flex-grow-1" style="background-color: #000; border-radius: 1rem; border: 2px solid #ffaa00;">
+      <div class="card-header" style="background-color: #001122; border-bottom: 1px solid #ffaa00;">
+        <h5 class="card-title text-warning mb-0" style="font-family: 'Orbitron', monospace;">
+          <i class="bi bi-box me-2"></i>Empty Card 2
+        </h5>
+      </div>
+      <div class="card-body d-flex flex-column justify-content-center px-3 py-4">
+        <!-- Your content here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 3 -->
+  <div class="col-md-6 col-lg-4 d-flex flex-column">
+    <div class="card shadow flex-grow-1" style="background-color: #000; border-radius: 1rem; border: 2px solid #ff0066;">
+      <div class="card-header" style="background-color: #1a001a; border-bottom: 1px solid #ff0066;">
+        <h5 class="card-title text-danger mb-0" style="font-family: 'Orbitron', monospace;">
+          <i class="bi bi-box me-2"></i>Empty Card 3
+        </h5>
+      </div>
+      <div class="card-body d-flex flex-column justify-content-center px-3 py-4">
+        <!-- Your content here -->
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script>
+    // ======================== Custom JavaScript ========================
+  </script>
+{% endblock %}

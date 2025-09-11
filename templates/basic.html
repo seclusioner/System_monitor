@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="zh-TW">
+
+{% include "partials/head.html" %}
+<!-- 如果某頁需要額外引入 CSS（如 chart.js）可以額外填入 -->
+{% block head_extra %}{% endblock %}
+
+
+<!--begin::Body-->
+<body class="layout-fixed sidebar-expand-lg sidebar-open" data-bs-theme="dark">
+    <!--begin::App Wrapper-->
+    <div class="app-wrapper">
+
+      <!-- Navbar -->
+      {% include 'partials/navbar.html' %}
+
+      <!-- Sidebar -->
+      {% include 'partials/sidebar.html' %}
+
+      <!--begin::App Main-->
+      <main class="app-main">
+
+        <!--begin::App Content Header-->
+        <div class="app-content-header">
+          <div class="container-fluid">
+            <div class="row">
+              <div class="col-sm-6">
+                <h3 class="mb-0" style="font-family: 'Orbitron', sans-serif;">
+                  {% block page_title %}Title{% endblock %}
+                </h3>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!--end::App Content Header-->
+
+        <!--begin::App Content-->
+        <div class="app-content">
+          <div class="container-fluid pb-4">
+            {% block content %}
+            <!-- 預設內容，可由子頁面覆寫 -->
+            {% endblock %}
+          </div>
+        </div>
+        <!--end::App Content-->
+
+      </main>
+      <!--end::App Main-->
+
+      {% include "partials/footer.html" %}
+
+    </div>
+    <!--end::App Wrapper-->
+
+
+    <!-- ========================= begin::JavaScript =========================-->
+    {% include 'partials/scripts_base.html' %}
+
+    {% block scripts %}
+      <!-- ApexCharts -->
+      <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.37.1/dist/apexcharts.min.js" crossorigin="anonymous"></script>
+
+      <!-- ECharts -->
+      <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+
+      <!-- Chart.js -->
+      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+      <!-- SortableJS -->
+      <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js" crossorigin="anonymous"></script>
+      <script>
+        const sortableContainer = document.querySelector('.connectedSortable');
+        if (sortableContainer) {
+          new Sortable(sortableContainer, {
+            group: 'shared',
+            handle: '.card-header',
+          });
+
+          sortableContainer.querySelectorAll('.card-header')
+            .forEach(el => el.style.cursor = 'move');
+        }
+      </script>
+
+      <script src="{{ url_for('static', filename='js/adminlte.js') }}"></script>
+    {% endblock %}
+  </body>
+  <!--end::Body-->
+</html>
