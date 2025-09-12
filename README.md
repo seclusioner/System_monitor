@@ -10,6 +10,7 @@ The goal of this project is to build a remote monitoring system for Raspberry Pi
 
 This system does not require additional hardware modules, and relies solely on the Raspberry Pi motherboard and basic software resources.
 
+Demo Video: [Youtube](https://studio.youtube.com/video/WHCoINdR3FU/edit)
 
 ## 🧩 Tested Hardware Information
 - Model: Raspberry Pi 3 Model B Rev 1.2
