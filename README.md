@@ -12,9 +12,9 @@ This system does not require additional hardware modules, and relies solely on t
 
 
 ## 🧩 Tested Hardware Information
-Model: Raspberry Pi 3 Model B Rev 1.2
-Hardware Platform: BCM2835 (actually BCM2837 SoC)
-CPU Model: ARMv7 Processor rev 4 (v7l)
+- Model: Raspberry Pi 3 Model B Rev 1.2
+- Hardware Platform: BCM2835 (actually BCM2837 SoC)
+- CPU Model: ARMv7 Processor rev 4 (v7l)
 
 
 ## Usage
