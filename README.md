@@ -85,5 +85,10 @@ Then, add the following entries:
 0 0 * * * > /home/pi/collector.log
 ```
 
-## 參考
+## References
 - UI Interface：[AdminLTE](https://github.com/ColorlibHQ/AdminLTE)
+
+
+## Future Work
+- Add C/C++ driver code to control GPIO pins directly through the UI interface
+- Integrate an AI model to optimize and execute downstream tasks
