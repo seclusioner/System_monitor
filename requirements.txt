@@ -1,3 +1,13 @@
-flask
-psutil
-python-dotenv
+click==8.1.8
+Flask==2.2.5
+importlib-metadata==6.7.0
+itsdangerous==2.1.2
+jinja2==3.1.6
+MarkupSafe==2.1.5
+pkg-resources==0.0.0
+psutil==7.0.0
+python-dotenv==0.21.1
+RPi.GPIO==0.7.1
+typing-extensions==4.7.1
+Werkzeug==2.2.3
+zipp==3.15.0
